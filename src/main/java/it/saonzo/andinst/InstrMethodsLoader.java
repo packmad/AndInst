@@ -61,30 +61,26 @@ class InstrMethodsLoader {
                             final String definingClass = method.getDefiningClass();
                             final List<? extends CharSequence> parameterTypes = method.getParameterTypes();
                             final String fullMethodName = definingClass + "." + methodName;
-                            if (parameterTypes.isEmpty()) {
-                                PrintWarning("ignoring " + fullMethodName + " because its signature is missing the 'this' parameter\n");
+                            if (!isStatic && parameterTypes.isEmpty()) {
+                                PrintWarning("ignoring non static" + fullMethodName + " because its signature is missing the 'this' parameter\n");
                                 continue;
                             }
                             final String firstParam = parameterTypes.get(0).toString();
-                            if (isStatic)
-                                continue;
-                            if (!firstParam.equals(annDefClass)) {
-                                PrintWarning("ignoring " + fullMethodName + " because its first param is different from defclass annotation\n");
+                            if (!isStatic && !firstParam.equals(annDefClass)) {
+                                PrintWarning("ignoring non static" + fullMethodName + " because its first param is different from defclass annotation\n");
                                 continue;
                             }
                             final String returnType = method.getReturnType();
                             final DexMethod originalMethod = new DexMethod(
                                     annDefClass,
                                     methodName,
-                                    removeThisParam(parameterTypes),
+                                    removeThisParam(parameterTypes, isStatic),
                                     returnType);
-                                    //isStatic);
                             final DexMethod newMethod = new DexMethod(
                                     method.getDefiningClass(),
                                     methodName,
                                     parameterTypes,
                                     returnType);
-                                    //isStatic);
                             out.printf(IOutput.Level.DEBUG,
                                     "Adding redirection: %s ---> %s\n",
                                     originalMethod,
@@ -99,12 +95,14 @@ class InstrMethodsLoader {
     }
 
 
-    private ArrayList<String> removeThisParam(List<? extends CharSequence> parameterTypes) {
+    private ArrayList<String> removeThisParam(List<? extends CharSequence> parameterTypes, boolean isStatic) {
         ArrayList<String> result = new ArrayList<>();
         for (CharSequence cs : parameterTypes)
             result.add(cs.toString());
-        final int THIS_PARAM_INDEX = 0;
-        result.remove(THIS_PARAM_INDEX);
+        if (!isStatic) {
+            final int THIS_PARAM_INDEX = 0;
+            result.remove(THIS_PARAM_INDEX);
+        }
         return result;
     }
 

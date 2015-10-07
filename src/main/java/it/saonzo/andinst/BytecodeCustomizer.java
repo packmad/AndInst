@@ -115,7 +115,9 @@ class BytecodeCustomizer {
         int i = -1;
         for (Instruction instruction : origImplementation.getInstructions()) {
             ++i;
-            if (instruction.getOpcode() == Opcode.INVOKE_VIRTUAL) {
+            Opcode opcode = instruction.getOpcode();
+            if (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_STATIC) {
+                assert instruction instanceof Instruction35c;
                 Instruction35c invokeVirtualInstruction = (Instruction35c) instruction;
                 Instruction35c newInstruction = checkInstruction(invokeVirtualInstruction);
                 if (newInstruction == invokeVirtualInstruction)
@@ -131,8 +133,7 @@ class BytecodeCustomizer {
 
     private Instruction35c checkInstruction(Instruction35c invokeInstr) {
         MethodReference r = (MethodReference) invokeInstr.getReference();
-        if (r.getName().equals("openConnection"))
-            out.printf(IOutput.Level.DEBUG, "Method %s . %s\n", r.getDefiningClass(), r.getName());
+        // out.printf(IOutput.Level.DEBUG, "Method %s . %s\n", r.getDefiningClass(), r.getName());
         MethodReference redirection = redirections.get(r);
         if (redirection != null) {
             out.printf(IOutput.Level.DEBUG, "Applying redirection to %s\n", redirection);

@@ -11,13 +11,11 @@ class DexMethod extends BaseMethodReference {
     private final String name;
     private final List<? extends CharSequence> parameterTypes;
     private final String returnType;
-    //private final boolean isStatic;
 
     public DexMethod(String definingClass,
                      String name,
                      List<? extends CharSequence> parameterTypes,
                      String returnType
-                     //boolean isStatic
     ) {
         if (definingClass==null || name==null || parameterTypes==null || returnType==null)
             throw new NullPointerException();
@@ -25,7 +23,6 @@ class DexMethod extends BaseMethodReference {
         this.name = name;
         this.parameterTypes = parameterTypes;
         this.returnType = returnType;
-        //this.isStatic = isStatic;
     }
 
     public static List<String> parseAndConvertIntoDalvikTypes(String csvParams) {
