@@ -116,16 +116,21 @@ class BytecodeCustomizer {
         for (Instruction instruction : origImplementation.getInstructions()) {
             ++i;
             Opcode opcode = instruction.getOpcode();
-            if (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_STATIC) {
+
+            if (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_DIRECT) {
                 assert instruction instanceof Instruction35c;
-                Instruction35c invokeVirtualInstruction = (Instruction35c) instruction;
-                Instruction35c newInstruction = checkInstruction(invokeVirtualInstruction);
-                if (newInstruction == invokeVirtualInstruction)
+                Instruction35c invokeInstr = (Instruction35c) instruction;
+
+                Instruction35c newInstruction = checkInstruction(invokeInstr);
+                if (newInstruction == invokeInstr)
                     continue;
                 if (newImplementation == null)
                     newImplementation = new MutableMethodImplementation(origImplementation);
                 ++nInstrumented;
-                newImplementation.replaceInstruction(i, (BuilderInstruction35c)newInstruction);
+                if (opcode == Opcode.INVOKE_DIRECT)
+                    newImplementation.addInstruction(++i,(BuilderInstruction35c)newInstruction);
+                else
+                    newImplementation.replaceInstruction(i, (BuilderInstruction35c)newInstruction);
             }
         }
         return newImplementation!=null ? newImplementation : origImplementation;

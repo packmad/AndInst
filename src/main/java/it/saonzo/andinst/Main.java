@@ -39,6 +39,8 @@ public class Main {
 
     private Main(String[] args) {
         cmdLine = parseCmdLine(args);
+        if (cmdLine == null)
+            System.exit(-1);
         inApkFilename = cmdLine.getOptionValue(OPTION_INPUT);
         outApkFilename = cmdLine.getOptionValue(OPTION_OUTPUT);
         instrDexFileName = cmdLine.getOptionValue(OPTION_DEFINSTR);

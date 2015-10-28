@@ -14,6 +14,7 @@ class InstrMethodsLoader {
     private static final String CLASS_ANNOTATION = "Lit/saonzo/annotations/ClassWithInstrMethods;";
     private static final String METHOD_ANNOTATION = "Lit/saonzo/annotations/InstrumentedMethod;";
 
+    private static final String METHOD_ANNOTATION_ISINIT_ELEMENT = "isInit";
     private static final String METHOD_ANNOTATION_ISSTATIC_ELEMENT = "isStatic";
     private static final String METHOD_ANNOTATION_DEFCLASS_ELEMENT = "defClass";
     private final IOutput out;
@@ -41,11 +42,15 @@ class InstrMethodsLoader {
                         if (a.getType().equals(METHOD_ANNOTATION)) {
 
                             boolean isStatic = false;
+                            boolean isInit = false;
                             String annDefClass = "";
 
                             for (AnnotationElement element : a.getElements()) {
                                 final String elementName = element.getName();
                                 switch (elementName) {
+                                    case METHOD_ANNOTATION_ISINIT_ELEMENT:
+                                        isInit = ((ImmutableBooleanEncodedValue) element.getValue()).getValue();
+                                        break;
                                     case METHOD_ANNOTATION_ISSTATIC_ELEMENT:
                                         isStatic = ((ImmutableBooleanEncodedValue) element.getValue()).getValue();
                                         break;
@@ -61,6 +66,10 @@ class InstrMethodsLoader {
                             final String definingClass = method.getDefiningClass();
                             final List<? extends CharSequence> parameterTypes = method.getParameterTypes();
                             final String fullMethodName = definingClass + "." + methodName;
+                            if (isInit && isStatic) {
+                                PrintWarning("ignoring " + fullMethodName + " because it's annotated static and init");
+                                continue;
+                            }
                             if (!isStatic && parameterTypes.isEmpty()) {
                                 PrintWarning("ignoring non static" + fullMethodName + " because its signature is missing the 'this' parameter\n");
                                 continue;
@@ -71,9 +80,12 @@ class InstrMethodsLoader {
                                 continue;
                             }
                             final String returnType = method.getReturnType();
+                            String origMethName = methodName;
+                            if (isInit)
+                                origMethName = "<init>";
                             final DexMethod originalMethod = new DexMethod(
                                     annDefClass,
-                                    methodName,
+                                    origMethName,
                                     removeThisParam(parameterTypes, isStatic),
                                     returnType);
                             final DexMethod newMethod = new DexMethod(
