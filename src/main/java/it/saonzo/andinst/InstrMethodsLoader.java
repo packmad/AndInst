@@ -74,10 +74,12 @@ class InstrMethodsLoader {
                                 PrintWarning("ignoring non static" + fullMethodName + " because its signature is missing the 'this' parameter\n");
                                 continue;
                             }
-                            final String firstParam = parameterTypes.get(0).toString();
-                            if (!isStatic && !firstParam.equals(annDefClass)) {
-                                PrintWarning("ignoring non static" + fullMethodName + " because its first param is different from defclass annotation\n");
-                                continue;
+                            if(!isStatic) {
+                                final String firstParam = parameterTypes.get(0).toString();
+                                if (!firstParam.equals(annDefClass)) {
+                                    PrintWarning("ignoring non static" + fullMethodName + " because its first param is different from defclass annotation\n");
+                                    continue;
+                                }
                             }
                             final String returnType = method.getReturnType();
                             String origMethName = methodName;
